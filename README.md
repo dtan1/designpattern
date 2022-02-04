@@ -9,38 +9,40 @@ Some of the Security Design Patterns in smart contracts :
 1. Checks Effect Interation pattern
 2. Withdrawal (Pull Over Push) pattern
 3. Guard Check Pattern
-4. Emergency Stop Pattern
-   - rate limit
+4. Emergency Action Pattern
    - speed bump
+   - rate limit
    - circuit breaker
 
 
 --------
 
 ### 1. Checks Effect Interaction (CEI) pattern :
-- secure / right ordering :
-  ```
-  - check first
-  - effects to state variable
-  - interaction last
-  ```
-  - in details :
-    - first validating all arguments 
-      - throw appropriate errors when arguments do no meet the expected output
-    - once validated, then make changes to smart contract states
-    - only interact with other smart contract or account in the last step
-      - i.e. ensure current contract has finshied executing all its functionalities.
+- What :
+  - secure / right ordering :
+     ```
+     - check first
+     - effects to state variable
+     - interaction last
+     ```
+- Why needed ?
+  - avoid re-entrancy attack
+    - function that is invoked repeatedly that should be executed once - DAO attack.     
+     
+- How
+  - first validating all arguments 
+    - throw appropriate errors when arguments do no meet the expected output
+  - once validated, then make changes to smart contract states
+  - only interact with other smart contract or account in the last step
+     - i.e. ensure current contract has finshied executing all its functionalities.
 
-- optimistic method :
-  - effects are written down as completed, before they actually took place
-  - This is ok as the whole transaction can be reverted (via transfer() call), if effect fails. 
-
-- when to use it ?
+- When to use it ?
   - good for function that needs to make external calls (to other smart contract or account)
 
-- what is it good for or why needed ?
-  - avoid re-entrancy attack
-    - function that is invoked repeatedly that should be executed once - DAO attack.
+- *Note :*
+    - *regarded as optimistic method :*
+      - *effects are written down as completed, before they actually took place*
+      - *This is ok as the whole transaction can be reverted (via transfer() call), if effect fails.* 
 
 - example :
   - see [CEIPattern.sol](https://github.com/dtan1/designpattern/blob/main/CEIPattern.sol)
@@ -81,15 +83,92 @@ Some of the Security Design Patterns in smart contracts :
     - user withdraws by issuing a transaction to withdrawal method that uses Check-effects-interaction pattern.
       - i.e. update user’s balance before transferring.
 
-- Note
-  - consideration : tradeoff between security and convenience
-    - requires user to send additional transaction  (i.e. requesting for withdrawal)
-      - higher gas requirement
-      - user experience
-    - should only be used when there is strong incentive for all participants to withdraw their funds
+- *Note*
+  - *consideration : tradeoff between security and convenience*
+    - *requires user to send additional transaction  (i.e. requesting for withdrawal)*
+      - *higher gas requirement*
+      - *user experience*
+    - *should only be used when there is strong incentive for all participants to withdraw their funds*
  
 - example :
   - see [WithdrawalPattern.sol](https://github.com/dtan1/designpattern/blob/main/WithdrawalPattern.sol)
+
+------
+
+### 3. Emergency Action Pattern :
+- Can be divided into 3 different actions, in order of severity : 
+  ```
+  a. delaying action - speed bump
+  b. limiting action - rate limit
+  c. emergency stop - circuit breaker
+  ```
+
+#### a. Speed Bump
+- What : 
+  - delay contract actions
+
+- when & Why :
+  - when malicious events occur - it gives the smart contract owner time to act accordingly
+  - e.g. The DAO had a 27 days delay installed in which no functions could be executed, leaving the funds in the contract, increasing the likelihood of recovery.
+
+- how :
+  - needs a recovery function for it to be really useful e.g. some sort of withdrawal function etc
+ 
+- example :
+  ```
+  struct RequestWithdrawal {
+  ...
+  }
+  ```
+
+#### b. Rate Limit
+- What :
+  - limiting action
+
+- Why needed (problem) :
+  - request a rush on a certain function
+
+- How (solution) :
+  - regualte how often a task can be executed within a certain period of time
+  - or limit amount of fund an owner can withdraw - to prevent rapid drainage of funds
+  - or limit number of issued tokens (in distruibution) over time.
+
+- When to use ?
+  - a depositor may only be allowed to withdraw a certain amount or percentage of total deposits over a certain time period
+  - additional withdrawals in that time period may fail or require some sort of special approval
+
+- example
+  ```
+  contract RateLimit {
+  ...
+  }
+  ```
+ 
+#### c. Circuit Breaker
+- What :
+  - pause or stop action
+  - capable of stopping the execution of a function inside a smart contract.
+
+- How :
+  - can be manually triggered by trusted parties, e.g. contract admin
+  - or automaticlly triggered via programmatic rules when a certain pre-defined conditions are met.
+  
+- When :
+  - a bug is discovered
+
+- Method :
+  - 2 modifiers :
+    - makes sure that all actions in the contract are suspended when a bug is discovered 
+      - only the admin is able to toggle this boolean.
+    - allow one to withdraw funds in case of a severe bug.
+
+- example
+  ```
+  bool private stopped = false;
+  ...
+  ```
+
+
 
 
 

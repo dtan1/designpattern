@@ -8,7 +8,7 @@ One of the main reasons is that your code must be able to respond to bugs and vu
 Some of the Security Design Patterns in smart contracts :
 1. Checks Effect Interation pattern
 2. Withdrawal (Pull Over Push) pattern
-3. Guard Check Pattern
+3. Access Restriction Pattern
 4. Emergency Action Pattern
    - speed bump
    - rate limit
@@ -95,7 +95,26 @@ Some of the Security Design Patterns in smart contracts :
 
 ------
 
-### 3. Emergency Action Pattern :
+### 3. Access Restriction Pattern :
+- What :
+  - Restrict the access to contract functionality according to certain criteria
+
+- When :
+  - against unauthorized access
+  - should only be callable under certain conditions by other contracts
+  - provide restriction to certain functions
+
+- How :
+  - via modifiers (in solidity)
+  - ownership check - see example below
+
+- example :
+  - [Ownable contract by Openzepellin](https://docs.openzeppelin.com/contracts/2.x/api/ownership#Ownable)
+
+------
+
+
+### 4. Emergency Action Pattern :
 - Can be divided into 3 different actions, in order of severity : 
   ```
   a. delaying action - speed bump

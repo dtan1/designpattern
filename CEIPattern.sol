@@ -11,14 +11,15 @@ contract CEIPattern{
     //check-effects-interaction pattern
     function withdraw(uint amount) public {
 
-        //check - ensure recipient / caller has sufficient fund.
+        //check - ensure caller has sufficient fund.
         require(funds[msg.sender] == amount);
 
-        //effect - decrement fund balance before transfer fund to recipient.
+        //effect - decrement fund balance first before transfer fund to recipient.
+        // ensure current balance is updated before interacting with external call
         funds[msg.sender] -= amount;
 
-        //interaction - transfer is used to revert all state changes if error 
-        //is thrown at recipient.
+        //interaction - last step is for external call
+        // transfer is used to revert all state changes if error is thrown at recipient.
         msg.sender.transfer(amount);
 
     }
